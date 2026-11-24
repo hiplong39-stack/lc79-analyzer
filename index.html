@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="vi"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1220"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="description" content="LC79 Analyzer - công cụ thống kê dữ liệu Tài Xỉu do người dùng cung cấp"><title>LC79 Analyzer V3.1</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--p:#121e30;--p2:#1b2b42;--line:#2c3d55;--txt:#f4f7fb;--muted:#a9b8cb;--green:#36c58d;--orange:#f3a15c;--blue:#85adff}
+*{box-sizing:border-box}body{margin:0 auto;max-width:850px;padding:env(safe-area-inset-top) 14px 30px;background:var(--bg);color:var(--txt);font:15px system-ui,-apple-system,Segoe UI,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:20px 2px 12px}h1{font-size:21px;margin:0}h2{font-size:16px;margin:0 0 12px}.muted,.note{color:var(--muted)}.muted{font-size:12px}.note{font-size:12px;line-height:1.55}
+.badge{border:1px solid #70552e;color:#ffd28f;border-radius:30px;padding:5px 9px;font-size:11px}
+.card{background:var(--p);border:1px solid var(--line);border-radius:16px;padding:15px;margin:11px 0}
+.tabs{display:flex;gap:7px;overflow:auto;margin:10px 0}.tabs button{white-space:nowrap;background:#253750;color:var(--txt)}.tabs button.active{background:var(--green);color:#052117}
+button{border:0;border-radius:10px;padding:12px 14px;background:var(--green);color:#062117;font-weight:750;cursor:pointer}button.alt{background:#263951;color:var(--txt);border:1px solid var(--line)}button:disabled{opacity:.5}
+input,textarea,select{width:100%;padding:12px;background:#0b1728;color:var(--txt);border:1px solid var(--line);border-radius:10px;font:inherit}textarea{min-height:105px}label{display:block;color:var(--muted);font-size:13px;margin:10px 0 6px}
+.row{display:flex;gap:9px;flex-wrap:wrap}.row>*{flex:1}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.metric{background:var(--p2);padding:12px;border-radius:12px}.metric small{display:block;color:var(--muted)}.metric strong{font-size:24px;display:block;margin-top:3px}.green{color:var(--green)}.orange{color:var(--orange)}
+.status{background:#302719;color:#ffda9e;padding:10px;border-radius:10px;font-size:12px;line-height:1.5}.status.ok{background:#123b30;color:#a5f2d1}
+table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 5px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}th{color:var(--muted)}.scroll{overflow:auto}
+.hidden{display:none!important}.chips{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0}.chip{background:#176548;padding:6px 9px;border-radius:8px;font-size:12px;font-weight:700}.chip.x{background:#75402e}.chip.tri{background:#51427b}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.actions button{flex:1}.bar{height:9px;background:#293b52;border-radius:9px;display:flex;overflow:hidden;margin:8px 0}.bar .t{background:var(--green)}.bar .x{background:var(--orange)}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:20px 5px}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.tabs{scrollbar-width:thin;padding-bottom:3px}
+.tabs button{flex:0 0 auto;min-height:46px}
+.panel{animation:fadeIn .16s ease-out}
+@keyframes fadeIn{from{opacity:.55;transform:translateY(3px)}to{opacity:1;transform:none}}
+.status{overflow-wrap:anywhere}
+#browserResults{overflow-wrap:anywhere}
+#bookmarkletCode{font-size:12px;line-height:1.5}
+@media(max-width:520px){body{padding-left:12px;padding-right:12px}header{align-items:flex-start;gap:10px}h1{font-size:20px}.card{padding:13px}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}.grid{gap:7px}.metric{padding:10px}.metric strong{font-size:22px}}
+@media(prefers-reduced-motion:reduce){.panel{animation:none}}
+</style></head><body>
+<header><div><h1>🎲 LC79 ANALYZER</h1><div class="muted">Website thống kê Tài Xỉu · Mobile & Desktop</div></div><span class="badge">V3.1 · API</span></header>
+<div id="apiStatus" class="status">Đang kiểm tra API…</div>
+<nav class="tabs" aria-label="Điều hướng chính">
+<button type="button" class="active" data-tab="dashboard" aria-selected="true">Tổng quan</button>
+<button type="button" data-tab="dice" aria-selected="false">3 xúc xắc</button>
+<button type="button" data-tab="md5" aria-selected="false">MD5</button>
+<button type="button" data-tab="browser" aria-selected="false">Kết nối trình duyệt</button>
+<button type="button" data-tab="help" aria-selected="false">Hướng dẫn</button>
+</nav>
+
+<section id="dashboard" class="panel">
+<div class="card"><h2>Tổng quan phân tích</h2><div class="grid">
+<div class="metric"><small>Số phiên xúc xắc</small><strong id="dTotal">0</strong></div>
+<div class="metric"><small>Số bản ghi MD5</small><strong id="mTotal">0</strong></div>
+<div class="metric"><small>Tài trong lịch sử</small><strong class="green" id="dTai">—</strong></div>
+<div class="metric"><small>Xỉu trong lịch sử</small><strong class="orange" id="dXiu">—</strong></div>
+</div><p class="note" id="summary">Chưa có dữ liệu. Vào mục 3 xúc xắc để nhập lịch sử hoặc mục MD5 để kiểm tra hash.</p></div>
+<div class="card"><h2>Xác suất lý thuyết · 3 xúc xắc</h2><div class="grid"><div class="metric"><small>Tài (11–17)</small><strong id="theoryTai">—</strong></div><div class="metric"><small>Xỉu (4–10)</small><strong id="theoryXiu">—</strong></div></div><p class="note" id="theoryNote">Đang tải xác suất lý thuyết…</p></div>
+<div class="card"><h2>Giới hạn quan trọng</h2><p class="note">Website này phân tích dữ liệu bạn cung cấp. Nó không kết nối trực tiếp tới tài khoản/máy chủ LC79, không giải mã ngược MD5 và không bảo đảm dự đoán đúng 90%. Kết quả thống kê lịch sử không cho biết chắc chắn phiên tiếp theo.</p></div>
+</section>
+
+<section id="dice" class="panel hidden">
+<div class="card"><h2>Phân tích 3 xúc xắc</h2><p class="note">Mỗi dòng nhập theo mẫu <b>mã_phiên, xúc_xắc_1, xúc_xắc_2, xúc_xắc_3</b>. Ví dụ: <b>6995429,4,5,6</b>. Có thể nhập không có mã phiên: <b>4,5,6</b>. Luật mặc định tách bộ ba; Xỉu 4–10; Tài 11–17.</p>
+<label for="diceInput">Dán lịch sử kết quả</label><textarea id="diceInput" placeholder="6995429,4,5,6&#10;6995430,2,3,4&#10;6995431,6,6,6"></textarea>
+<div class="actions"><button id="runDice">Phân tích qua API</button><button class="alt" id="sampleDice">Dữ liệu mẫu</button><button class="alt" id="clearDice">Xóa</button></div>
+<div id="diceError" class="note"></div>
+<div class="grid" style="margin-top:12px"><div class="metric"><small>Phiên hợp lệ</small><strong id="rTotal">—</strong></div><div class="metric"><small>Bộ ba</small><strong id="rTriple">—</strong></div><div class="metric"><small>Tài</small><strong class="green" id="rTai">—</strong></div><div class="metric"><small>Xỉu</small><strong class="orange" id="rXiu">—</strong></div></div>
+<div class="bar"><span id="barTai" class="t" style="width:50%"></span><span id="barXiu" class="x" style="width:50%"></span></div>
+<div class="scroll"><table><thead><tr><th>Phiên</th><th>Xúc xắc</th><th>Tổng</th><th>Kết quả</th></tr></thead><tbody id="diceRows"><tr><td colspan="4">Chưa phân tích.</td></tr></tbody></table></div>
+<p id="diceWarning" class="note"></p></div>
+</section>
+
+<section id="md5" class="panel hidden">
+<div class="card"><h2>Kiểm tra chuỗi MD5</h2><p class="note">Nhập mã phiên và chuỗi hash. API kiểm tra hình thức chuỗi 32 ký tự hex; việc này không xác nhận hash do LC79 tạo và không thể tìm ra kết quả tương lai.</p>
+<label for="md5Round">Mã phiên</label><input id="md5Round" placeholder="Ví dụ 7165888">
+<label for="md5Hash">Chuỗi MD5</label><input id="md5Hash" autocapitalize="off" spellcheck="false" placeholder="Dán chuỗi hash">
+<label for="md5Result">Kết quả đã công bố (nếu có)</label><select id="md5Result"><option value="">Chưa biết</option><option value="Tài">Tài</option><option value="Xỉu">Xỉu</option><option value="Bộ ba/đặc biệt">Bộ ba/đặc biệt</option></select>
+<div class="actions"><button id="inspectMd5">Kiểm tra MD5</button><button class="alt" id="saveMd5">Lưu bản ghi</button></div><div id="md5Output" class="note"></div>
+<div class="scroll"><table><thead><tr><th>Phiên</th><th>Hash</th><th>Kết quả</th></tr></thead><tbody id="md5Rows"><tr><td colspan="3">Chưa có bản ghi.</td></tr></tbody></table></div></div>
+</section>
+
+
+<section id="browser" class="panel hidden">
+<div class="card">
+<h2>🔗 Kết nối trình duyệt Safari</h2>
+<div class="status">Chế độ hỗ trợ iPhone: dùng bookmarklet để lấy văn bản đang hiển thị trên tab LC79. Bạn chủ động bấm bookmark khi đang mở trang LC79; dữ liệu được chuyển qua clipboard rồi dán vào đây.</div>
+<label>Bookmarklet – sao chép mã</label>
+<textarea id="bookmarkletCode" readonly style="min-height:115px">javascript:(()=>{const t=document.body?document.body.innerText:'';const u=location.href;const s='LC79_PAGE_URL: '+u+'\\n\\n'+t;if(!t.trim()){alert('Không đọc được văn bản đang hiển thị trên trang.');return;}const fallback=()=>{const w=window.open('','_blank');if(w){w.document.write('<meta name="viewport" content="width=device-width,initial-scale=1"><title>LC79 Capture</title><textarea style="width:100%;height:90vh;font-size:14px"></textarea>');w.document.querySelector('textarea').value=s;w.document.querySelector('textarea').focus();w.document.querySelector('textarea').select();}else{prompt('Nhấn giữ nội dung để sao chép:',s);}};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(s).then(()=>alert('Đã sao chép dữ liệu. Quay lại Analyzer và dán vào ô dữ liệu trang.')).catch(fallback);}else{fallback();}})()</textarea>
+<div class="actions"><button id="copyBookmarklet">Sao chép mã bookmarklet</button></div>
+<p class="note">Cách cài trên Safari iPhone: (1) Tạo một dấu trang bất kỳ. (2) Sửa dấu trang, đặt tên “LC79 Capture”. (3) Thay toàn bộ địa chỉ URL bằng mã đã sao chép, bảo đảm mã bắt đầu bằng <code>javascript:</code>. Nếu Safari tự xóa phần này, hãy thử sửa lại trường URL sau khi lưu. (4) Mở tab LC79, chọn dấu trang “LC79 Capture”.</p>
+<label for="browserText">Nhập dữ liệu trang đã sao chép</label>
+<textarea id="browserText" placeholder="Dán nội dung đã lấy từ tab LC79 tại đây…"></textarea>
+<div class="actions"><button id="inspectBrowser">Phân tích văn bản trang</button><button class="alt" id="clearBrowser">Xóa</button></div>
+<div id="browserStatus" class="note"></div>
+<div id="browserResults" class="note"></div>
+</div>
+<div class="card">
+<h2>Giới hạn kết nối</h2>
+<p class="note">Bookmarklet chỉ đọc văn bản DOM mà trang cho phép hiển thị. Nếu trò chơi vẽ kết quả bằng canvas, WebGL, ảnh hoặc dữ liệu mã hóa, công cụ có thể không đọc được. Khi đó cần nhập dữ liệu thủ công hoặc dùng ảnh/OCR. Cơ chế này không lấy cookie, không đọc mật khẩu, không tự đặt cược và không vượt cơ chế bảo vệ của LC79.</p>
+</div>
+</section>
+
+<section id="help" class="panel hidden">
+<div class="card"><h2>Cách chạy website</h2><ol class="note"><li>Cài Python 3.10 trở lên.</li><li>Giải nén gói dự án.</li><li>Mở Terminal tại thư mục dự án và chạy <code>pip install -r requirements.txt</code>.</li><li>Chạy <code>uvicorn lc79_api:app --host 127.0.0.1 --port 8000</code>.</li><li>Mở <code>http://127.0.0.1:8000</code>.</li></ol><p class="note">Để mở từ iPhone, máy tính và iPhone cần cùng mạng Wi-Fi; chạy server với <code>--host 0.0.0.0</code>, sau đó truy cập IP nội bộ của máy tính và cổng 8000. Muốn website công khai cần triển khai lên máy chủ HTTPS.</p></div>
+<div class="card"><h2>API docs</h2><p class="note">Khi server đang chạy, mở <code>/docs</code> để xem và thử toàn bộ endpoint FastAPI.</p></div>
+</section>
+<footer>LC79 Analyzer độc lập · Không phải website chính thức của LC79 · Chỉ phân tích dữ liệu được cung cấp</footer>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+let lastDice = [], md5Log = [];
+try { md5Log = JSON.parse(localStorage.getItem('lc79_web_md5') || '[]'); if (!Array.isArray(md5Log)) md5Log=[]; } catch (_) { md5Log=[]; }
+
+function showTab(tabId) {
+  const panel = $(tabId);
+  if (!panel || !panel.classList.contains('panel')) return;
+  document.querySelectorAll('.tabs [data-tab]').forEach(btn => {
+    const active = btn.dataset.tab === tabId;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  document.querySelectorAll('.panel').forEach(section => {
+    section.classList.toggle('hidden', section.id !== tabId);
+  });
+  try { history.replaceState(null, '', '#' + tabId); } catch (_) {}
+}
+document.querySelector('.tabs').addEventListener('click', event => {
+  const button = event.target.closest('button[data-tab]');
+  if (button) { event.preventDefault(); showTab(button.dataset.tab); }
+});
+document.querySelector('.tabs').addEventListener('keydown', event => {
+  if (!['ArrowLeft','ArrowRight'].includes(event.key)) return;
+  const buttons = [...document.querySelectorAll('.tabs button[data-tab]')];
+  const index = buttons.indexOf(document.activeElement);
+  if (index < 0) return;
+  event.preventDefault();
+  const next = buttons[(index + (event.key === 'ArrowRight' ? 1 : -1) + buttons.length) % buttons.length];
+  next.focus(); showTab(next.dataset.tab);
+});
+if (location.hash && $(location.hash.slice(1))) showTab(location.hash.slice(1));
+
+async function api(path, body) {
+  const response = await fetch(path, {
+    method: body ? 'POST' : 'GET',
+    headers: body ? {'Content-Type':'application/json'} : {},
+    body: body ? JSON.stringify(body) : undefined
+  });
+  let data = {};
+  try { data = await response.json(); } catch (_) {}
+  if (!response.ok) {
+    const detail = data.detail ? (typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail)) : 'API error ' + response.status;
+    throw new Error(detail);
+  }
+  return data;
+}
+const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
+  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+}[ch]));
+function setText(id, value) { const el=$(id); if(el) el.textContent=value; }
+
+async function init() {
+  try {
+    await api('/health');
+    setText('apiStatus','API đang hoạt động · Có thể sử dụng các chức năng phân tích.');
+    $('apiStatus').classList.add('ok');
+    const theory = await api('/v1/dice/theory');
+    setText('theoryTai',(theory.tai.probability*100).toFixed(2)+'%');
+    setText('theoryXiu',(theory.xiu.probability*100).toFixed(2)+'%');
+    setText('theoryNote',theory.rule_note || 'Xác suất lý thuyết của ba xúc xắc công bằng.');
+  } catch(error) {
+    setText('apiStatus','Chưa kết nối được API. Giao diện vẫn mở; hãy chạy máy chủ theo mục Hướng dẫn. Chi tiết: '+error.message);
+    $('apiStatus').classList.remove('ok');
+  }
+}
+function parseDice(text) {
+  const rounds=[];
+  for (const line of text.split(/\r?\n/)) {
+    const value=line.trim(); if(!value) continue;
+    const match=value.match(/^(?:(\d+)\s*[,;:\- ]\s*)?([1-6])\s*[,;:\- ]\s*([1-6])\s*[,;:\- ]\s*([1-6])$/);
+    if(!match) throw new Error('Dòng không hợp lệ: '+value);
+    rounds.push({round_id:match[1]||null,dice:[+match[2],+match[3],+match[4]]});
+  }
+  return rounds;
+}
+$('runDice').addEventListener('click', async () => {
+  const button=$('runDice'); button.disabled=true; setText('diceError','Đang phân tích…');
+  try {
+    const rounds=parseDice($('diceInput').value);
+    if(!rounds.length) throw new Error('Hãy nhập ít nhất một phiên.');
+    const data=await api('/v1/dice/analyze',{rounds}); lastDice=data.rounds||[];
+    setText('rTotal',data.round_count); setText('rTriple',data.counts.triple);
+    const taiRate=data.rates_excluding_triples.tai, xiuRate=data.rates_excluding_triples.xiu;
+    setText('rTai',data.counts.tai+' · '+(taiRate==null?'—':(taiRate*100).toFixed(1)+'%'));
+    setText('rXiu',data.counts.xiu+' · '+(xiuRate==null?'—':(xiuRate*100).toFixed(1)+'%'));
+    const denominator=data.counts.tai+data.counts.xiu;
+    $('barTai').style.width=(denominator?data.counts.tai/denominator*100:50)+'%';
+    $('barXiu').style.width=(denominator?data.counts.xiu/denominator*100:50)+'%';
+    $('diceRows').innerHTML=lastDice.slice().reverse().map(row =>
+      `<tr><td>${escapeHTML(row.round_id||'—')}</td><td>${escapeHTML(row.dice.join(' – '))}</td><td>${escapeHTML(row.total)}</td><td>${escapeHTML(row.outcome)}</td></tr>`
+    ).join('') || '<tr><td colspan="4">Không có dữ liệu.</td></tr>';
+    setText('diceWarning',data.warning||'');
+    setText('diceError','Phân tích thành công.');
+    setText('dTotal',data.round_count); setText('mTotal',md5Log.length);
+    setText('dTai',data.counts.tai); setText('dXiu',data.counts.xiu);
+    setText('summary','Đã phân tích '+data.round_count+' phiên. Tần suất lịch sử không dự báo chắc chắn phiên tiếp theo.');
+  } catch(error) { setText('diceError',error.message); }
+  finally { button.disabled=false; }
+});
+$('sampleDice').addEventListener('click',()=>{$('diceInput').value='6995429,4,5,6\n6995430,2,3,4\n6995431,6,6,6\n6995432,5,5,2\n6995433,1,1,3\n6995434,6,4,2';});
+$('clearDice').addEventListener('click',()=>{$('diceInput').value='';$('diceRows').innerHTML='<tr><td colspan="4">Chưa phân tích.</td></tr>';setText('diceError','');});
+
+function renderMd5() {
+  $('md5Rows').innerHTML=md5Log.slice().reverse().map(row =>
+    `<tr><td>${escapeHTML(row.round||'—')}</td><td>${escapeHTML((row.hash||'').slice(0,18)+(String(row.hash||'').length>18?'…':''))}</td><td>${escapeHTML(row.result||'Chưa biết')}</td></tr>`
+  ).join('') || '<tr><td colspan="3">Chưa có bản ghi.</td></tr>';
+  setText('mTotal',md5Log.length);
+}
+$('inspectMd5').addEventListener('click',async()=>{
+  setText('md5Output','Đang kiểm tra…');
+  try {
+    const data=await api('/v1/md5/inspect',{
+      round_id:$('md5Round').value.trim()||null,
+      hash:$('md5Hash').value.trim(),
+      published_result:$('md5Result').value||null
+    });
+    setText('md5Output',`Độ dài: ${data.length}. Đúng định dạng MD5 32 ký tự hex: ${data.looks_like_md5?'Có':'Không'}. ${data.note}`);
+  } catch(error) { setText('md5Output',error.message); }
+});
+$('saveMd5').addEventListener('click',()=>{
+  const hash=$('md5Hash').value.trim();
+  if(!hash){setText('md5Output','Hãy nhập chuỗi hash trước.');return;}
+  md5Log.push({round:$('md5Round').value.trim(),hash,result:$('md5Result').value});
+  try{localStorage.setItem('lc79_web_md5',JSON.stringify(md5Log));}catch(_){}
+  renderMd5(); setText('md5Output','Đã lưu trên trình duyệt hiện tại.');
+});
+
+const bookmarkletText=$('bookmarkletCode').value.trim();
+$('copyBookmarklet').addEventListener('click',async()=>{
+  const field=$('bookmarkletCode');
+  try {
+    if(navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(bookmarkletText);
+      setText('browserStatus','Đã sao chép mã. Nếu Safari không cho phép, nhấn giữ trong ô mã và chọn Sao chép.');
+    } else {
+      field.focus(); field.select(); field.setSelectionRange(0,field.value.length);
+      setText('browserStatus','Mã đã được chọn. Nhấn giữ trong ô rồi chọn Sao chép.');
+    }
+  } catch(_) {
+    field.focus(); field.select(); field.setSelectionRange(0,field.value.length);
+    setText('browserStatus','Safari chưa cấp quyền clipboard. Nhấn giữ phần mã đã chọn và chọn Sao chép.');
+  }
+});
+$('bookmarkletCode').addEventListener('click',()=>{$('bookmarkletCode').focus();$('bookmarkletCode').select();});
+$('inspectBrowser').addEventListener('click',async()=>{
+  const raw=$('browserText').value.trim();
+  if(!raw){setText('browserStatus','Hãy dán văn bản lấy từ LC79 trước.');return;}
+  setText('browserStatus','Đang phân tích văn bản…');
+  try {
+    const pageUrl=(raw.match(/LC79_PAGE_URL:\s*(https?:\/\/[^\s]+)/)||[])[1]||null;
+    const data=await api('/v1/browser/inspect',{page_url:pageUrl,page_text:raw});
+    setText('browserStatus',`Đã nhận ${data.characters_received} ký tự từ ${data.lines_received} dòng. Các mục dưới đây chỉ là ứng viên, cần đối chiếu thủ công.`);
+    $('browserResults').innerHTML=
+      `<p><b>Mã phiên có thể có:</b> ${data.round_id_candidates.map(escapeHTML).join(', ')||'Không tìm thấy'}</p>`+
+      `<p><b>Chuỗi MD5 32 ký tự:</b> ${data.md5_candidates.map(escapeHTML).join(', ')||'Không tìm thấy'}</p>`+
+      `<p><b>Dòng có Tài/Xỉu (${data.outcome_line_candidates.length}):</b></p>`+
+      `<ul>${data.outcome_line_candidates.map(line=>'<li>'+escapeHTML(line)+'</li>').join('')}</ul>`+
+      `<p><b>Bộ ba xúc xắc có thể có:</b> ${data.dice_candidates.map(item=>escapeHTML(item.dice.join('-'))).join(', ')||'Không tìm thấy'}</p>`+
+      `<p class="note">${escapeHTML(data.warning||'')}</p>`;
+  } catch(error) { setText('browserStatus','Không phân tích được: '+error.message); }
+});
+$('clearBrowser').addEventListener('click',()=>{$('browserText').value='';setText('browserStatus','');$('browserResults').innerHTML='';});
+$('browserText').addEventListener('input',()=>{if($('browserText').value.length) setText('browserStatus','Đã nhập văn bản. Nhấn “Phân tích văn bản trang” để trích xuất ứng viên.');});
+
+renderMd5(); init();
+</script></body></html>
